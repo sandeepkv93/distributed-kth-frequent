@@ -92,6 +92,98 @@ The system consists of three main components:
 - `FrequencyPair.java`: Represents element-frequency pairs
 - `ProcessingResult.java`: Contains node processing results
 
+```mermaid
+sequenceDiagram
+    participant C as Coordinator
+    participant N1 as Node 1
+    participant N2 as Node 2
+    participant N3 as Node 3
+
+    Note over C,N3: Phase 1: Data Distribution
+    C->>N1: Chunk 1 of data
+    C->>N2: Chunk 2 of data
+    C->>N3: Chunk 3 of data
+
+    Note over C,N3: Phase 2: Local Processing
+    activate N1
+    N1->>N1: Count frequencies
+    activate N2
+    N2->>N2: Count frequencies
+    activate N3
+    N3->>N3: Count frequencies
+
+    Note over C,N3: Phase 3: Send Local Results
+    N1-->>C: Local frequency dict 1
+    deactivate N1
+    N2-->>C: Local frequency dict 2
+    deactivate N2
+    N3-->>C: Local frequency dict 3
+    deactivate N3
+
+    Note over C: Phase 4: Global Processing
+    activate C
+    C->>C: Merge frequency dictionaries
+    C->>C: Create max heap
+    C->>C: Extract Kth frequent element
+    deactivate C
+
+    Note over C: Phase 5: Memory Management
+    activate C
+    C->>C: Check memory usage
+    alt Memory fits
+        C->>C: Direct processing
+    else Memory exceeded
+        C->>C: Use Count-Min Sketch
+        C->>C: Process in batches
+    end
+    deactivate C
+```
+
+```mermaid
+flowchart TD
+    A[Input Large Dataset] --> B[Distribute Data]
+    
+    subgraph Local_Processing["Local Processing (Map Phase)"]
+        B --> C1[Node 1]
+        B --> C2[Node 2]
+        B --> C3[Node 3]
+        
+        C1 --> D1[Count Local Frequencies]
+        C2 --> D2[Count Local Frequencies]
+        C3 --> D3[Count Local Frequencies]
+        
+        D1 --> E1[Local Dict 1]
+        D2 --> E2[Local Dict 2]
+        D3 --> E3[Local Dict 3]
+    end
+    
+    subgraph Global_Processing["Global Processing (Reduce Phase)"]
+        E1 --> F[Merge Dictionaries]
+        E2 --> F
+        E3 --> F
+        F --> G[Global Frequency Dict]
+    end
+    
+    subgraph Memory_Management["Memory Management"]
+        G --> H{Memory Check}
+        H -->|Fits| I[Direct Processing]
+        H -->|Exceeded| J[Batch Processing]
+        J --> K[Count-Min Sketch]
+    end
+    
+    subgraph Final_Processing["Final Processing"]
+        I --> L[Create Max Heap]
+        K --> L
+        L --> M[Extract K Elements]
+        M --> N[Return Kth Element]
+    end
+    
+    classDef default fill:#f9f9f9,stroke:#333,stroke-width:2px
+    classDef phase fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    
+    class Local_Processing,Global_Processing,Memory_Management,Final_Processing phase
+```
+
 ## 🧪 Testing
 
 ```bash
